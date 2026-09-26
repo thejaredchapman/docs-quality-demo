@@ -1,5 +1,8 @@
+import sys
+
 import pytest
 
+import eval_judge
 from eval_judge import agreement_stats, build_report, compute_metrics, keep_applicable, load_labels
 from rules import applicable_pairs, load_checklist
 
@@ -70,3 +73,53 @@ def test_labels_file_covers_only_applicable_pairs():
     assert labeled <= pairs
     assert meta["labeler"]
     assert meta["rules_hash"].startswith("sha256:")
+
+
+def _real_applicable_pair():
+    """A real (page, item id) pair, so fake labels survive keep_applicable() in main()."""
+    pairs = applicable_pairs(load_checklist())
+    assert pairs, "expected at least one applicable (page, rule) pair in the repo fixtures"
+    return pairs[0]
+
+
+def test_main_exits_on_stale_labels(monkeypatch):
+    page, item = _real_applicable_pair()
+    monkeypatch.setattr(
+        eval_judge, "load_labels",
+        lambda: ({"labeler": "Jared Chapman", "date": "2026-09-26", "rules_hash": "sha256:stale"}, {page: {item: True}}),
+    )
+    monkeypatch.setattr(eval_judge, "rules_hash", lambda: "sha256:current")
+    judge_calls = []
+    monkeypatch.setattr(eval_judge, "judge_page", lambda *a, **k: judge_calls.append((a, k)) or {})
+    monkeypatch.setattr(eval_judge, "publish", lambda *a, **k: None)
+    monkeypatch.setattr(sys, "argv", ["eval_judge.py"])
+
+    with pytest.raises(SystemExit) as excinfo:
+        eval_judge.main()
+
+    assert excinfo.value.code == 1
+    assert judge_calls == []
+
+
+def test_main_allow_stale_proceeds(monkeypatch):
+    page, item = _real_applicable_pair()
+    monkeypatch.setattr(
+        eval_judge, "load_labels",
+        lambda: ({"labeler": "Jared Chapman", "date": "2026-09-26", "rules_hash": "sha256:stale"}, {page: {item: True}}),
+    )
+    monkeypatch.setattr(eval_judge, "rules_hash", lambda: "sha256:current")
+    judge_calls = []
+
+    def fake_judge_page(body, rules, model=None):
+        judge_calls.append(model)
+        return {item: {"passed": True, "reason": "faked"}}
+
+    monkeypatch.setattr(eval_judge, "judge_page", fake_judge_page)
+    published = []
+    monkeypatch.setattr(eval_judge, "publish", lambda markdown: published.append(markdown))
+    monkeypatch.setattr(sys, "argv", ["eval_judge.py", "--allow-stale"])
+
+    eval_judge.main()  # must not raise
+
+    assert judge_calls  # judge_page was called at least once
+    assert published

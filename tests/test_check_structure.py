@@ -78,6 +78,19 @@ def test_only_warning_callouts_allowed():
     assert ids(check_page("docs/a.md", page("how-to", body), RULES)) == ["warnings_only", "warnings_only"]
 
 
+def test_zero_titles_reports_single_h1_at_first_body_line():
+    # Note: this page also trips `intro_first` (see check_structure.py's title_line
+    # fallback to 1 when there's no heading, which makes the intro check skip body
+    # line 1 entirely) -- that's the checker's actual behavior, reported here rather
+    # than papered over, per the fix-wave instructions not to change checker code.
+    body = "This page is for people who want a thing.\n\n1. Open **Settings**.\n2. Select **Thing**.\n\nThe thing is done.\n"
+    violations = check_page("docs/a.md", page("how-to", body), RULES)
+    single_h1 = [v for v in violations if v.rule_id == "single_h1"]
+    assert len(single_h1) == 1
+    # 3 frontmatter lines + line 1 of the body (no title) = file line 4
+    assert single_h1[0].line == 4
+
+
 def test_two_titles():
     assert ids(check_page("docs/a.md", page("how-to", GOOD_HOW_TO + "\n# Another\n"), RULES)) == ["single_h1"]
 

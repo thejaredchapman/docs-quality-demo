@@ -33,6 +33,18 @@ jobs:
       - name: Every page has the structure its type requires
         run: python scripts/check_structure.py
 
+  tests:
+    name: Unit tests (Python 3.9)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: pytest -q
+
   claude-review:
     name: Style review (Claude)
     runs-on: ubuntu-latest
