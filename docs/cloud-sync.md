@@ -5,7 +5,7 @@ type: how-to
 
 This page is for people who use Tally on more than one device, like a phone and a laptop.
 
-## Before you begin
+## Before you start
 
 - Sign in to the same Tally account on each device.
 

@@ -57,7 +57,7 @@ Start every step with a verb: "Select **Save changes**," not "Now you'll want to
 ## Links
 
 <!-- rule id=link_text check=vale -->
-**Make link text say where the link goes.** Write "See [Turn on cloud sync](cloud-sync.md)," not "Select [here](cloud-sync.md)."
+**Make link text say where the link goes.** Write "See `[Turn on cloud sync](cloud-sync.md)`," not "Select `[here](cloud-sync.md)`."
 
 *Why:* screen readers can list a page's links on their own, and a list of "here, here, here" is useless. People who skim read the links first.
 
@@ -132,7 +132,7 @@ If a page seems to need two types, it's two pages.
 
 *Why:* a reader who finds out at step 4 that they needed an account has wasted three steps.
 
-In a how-to, put prerequisites in the intro. In a tutorial, put them in a `## Before you start` section.
+In a how-to, put prerequisites in the intro, or in a `## Before you start` section if there's more than one. In a tutorial, always use a `## Before you start` section.
 
 <!-- rule id=one_action_per_step check=claude types=how-to,tutorial,troubleshooting -->
 **Each numbered step asks the reader to do exactly one thing.**

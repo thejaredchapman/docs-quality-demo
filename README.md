@@ -27,6 +27,8 @@ Every page declares `type:` in its frontmatter: `tutorial`, `how-to`, `reference
 
 [`eval/labels.json`](eval/labels.json) holds hand labels: for each page, and each Claude rule that applies to its type, does the page follow the rule? That's 62 judgments on 14 pages. The labels were made blind with [`scripts/label.py`](scripts/label.py), which never shows Claude's answers.
 
+Some pages break the style guide on purpose, so every check has something real to catch. They aren't listed here, so the hand labels stay blind.
+
 | Model | Agreement | Always-pass baseline | Cohen's κ | Misses | False alarms |
 |---|---|---|---|---|---|
 | `claude-haiku-4-5-20251001` | __% | __% | __ | __ | __ |
@@ -87,7 +89,7 @@ vale docs                                # needs Vale installed: brew install va
 
 ## Demo PRs
 
-1. **Style problems.** Edit `docs/streak-freeze.md` and `docs/edit-a-habit.md`. Vale flags "just," and Claude flags the missing outcome and the multi-action step.
+1. **Style problems.** Edit `docs/streak-freeze.md` and `docs/edit-a-habit.md`. Vale flags "just," and Claude flags the missing outcome, the multi-action step, and the intro that doesn't say who the page is for.
 2. **UI rename.** In `app/ui_strings.json`, change `"Save changes"` → `"Save"` and `"Cloud sync"` → `"Sync"`. The drift check fails and lists the 11 lines that need updating.
 3. **Clean PR.** A small fix to `docs/delete-account.md`. Everything passes.
 4. **Structure problems.** Add `docs/pause-a-habit.md` with `type: how-to`, 8 numbered steps, and a `> **Note:**` callout. The structure check fails with two annotations: `max_steps` on step 8 and `warnings_only` on the note.
