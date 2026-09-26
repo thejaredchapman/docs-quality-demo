@@ -1,3 +1,6 @@
+---
+type: landing
+---
 # Welcome to Tally
 
 Tally is a habit tracker for people who want to build routines one day at a time. These docs are for anyone using the Tally mobile or web app.

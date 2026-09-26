@@ -1,3 +1,6 @@
+---
+type: reference
+---
 # Keyboard Shortcuts Reference
 
 This page is for people using Tally in a web browser who want to move faster with the keyboard.
