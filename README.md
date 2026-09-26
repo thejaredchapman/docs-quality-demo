@@ -25,7 +25,9 @@ Every page declares `type:` in its frontmatter: `tutorial`, `how-to`, `reference
 
 ## How accurate is the Claude reviewer?
 
-[`eval/labels.json`](eval/labels.json) holds hand labels: for each page, and each Claude rule that applies to its type, does the page follow the rule? That's 62 judgments on 14 pages. The labels were made blind with [`scripts/label.py`](scripts/label.py), which never shows Claude's answers.
+**Status: labeling in progress.** The table below fills in once the hand labels are done.
+
+The answer key is `eval/labels.json`: for each page, and each Claude rule that applies to its type, does the page follow the rule? That's 62 judgments on 14 pages. The labels are made blind with [`scripts/label.py`](scripts/label.py), which never shows Claude's answers.
 
 Some pages break the style guide on purpose, so every check has something real to catch. They aren't listed here, so the hand labels stay blind.
 
