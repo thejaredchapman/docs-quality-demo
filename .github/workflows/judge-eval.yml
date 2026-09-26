@@ -1,0 +1,31 @@
+name: Judge accuracy
+
+# Run by hand from the Actions tab, so it doesn't spend API credits on every PR
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: "Space-separated Claude model IDs to compare"
+        default: "claude-sonnet-5"
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Grade labeled pages and compare to hand labels
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODELS: ${{ inputs.models }}
+        run: |
+          args=""
+          for model in $MODELS; do args="$args --model $model"; done
+          python scripts/eval_judge.py $args

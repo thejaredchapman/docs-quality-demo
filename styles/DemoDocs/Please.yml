@@ -1,0 +1,6 @@
+extends: existence
+message: "Drop 'please'. Instructions read more clearly without it."
+level: suggestion
+ignorecase: true
+tokens:
+  - please

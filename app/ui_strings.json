@@ -1,0 +1,12 @@
+{
+  "save_button": "Save changes",
+  "settings_menu": "Settings",
+  "appearance_setting": "Appearance",
+  "dark_mode_toggle": "Dark mode",
+  "reminders_setting": "Daily reminders",
+  "export_button": "Export data",
+  "delete_account_button": "Delete account",
+  "sync_setting": "Cloud sync",
+  "new_habit_button": "New habit",
+  "streak_freeze_setting": "Streak freeze"
+}

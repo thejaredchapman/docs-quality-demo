@@ -1,0 +1,56 @@
+name: Docs checks
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  checks: write         # lets Vale post its results as a check
+  pull-requests: write  # lets Vale comment on the changed lines
+
+jobs:
+  vale:
+    name: Style lint (Vale)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: errata-ai/vale-action@v2
+        with:
+          files: docs
+
+  claude-review:
+    name: Style review (Claude)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history, so we can diff against the base branch
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Find changed docs pages
+        id: changed
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          pages=$(git diff --name-only --diff-filter=AM "origin/$BASE_REF"...HEAD -- 'docs/*.md' | tr '\n' ' ')
+          echo "pages=$pages" >> "$GITHUB_OUTPUT"
+      - name: Review changed pages
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PAGES: ${{ steps.changed.outputs.pages }}
+        run: python scripts/review_pages.py $PAGES
+
+  ui-drift:
+    name: UI text drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check docs against changed UI strings
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: python3 scripts/ui_drift.py --base-ref "origin/$BASE_REF"

@@ -1,0 +1,107 @@
+{
+  "change-password.md": {
+    "intro_audience": false,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "cloud-sync.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": false,
+    "outcome_stated": false
+  },
+  "create-a-habit.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": false,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "dark-mode.md": {
+    "intro_audience": false,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "delete-account.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "edit-a-habit.md": {
+    "intro_audience": false,
+    "prereqs_first": true,
+    "one_action_per_step": false,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "export-data.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": false,
+    "outcome_stated": true
+  },
+  "faq.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": false,
+    "outcome_stated": true
+  },
+  "getting-started.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "index.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "keyboard-shortcuts.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "reminders.md": {
+    "intro_audience": true,
+    "prereqs_first": false,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  },
+  "share-progress.md": {
+    "intro_audience": true,
+    "prereqs_first": false,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": false
+  },
+  "streak-freeze.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": false
+  },
+  "troubleshooting-sync.md": {
+    "intro_audience": true,
+    "prereqs_first": true,
+    "one_action_per_step": true,
+    "no_undefined_jargon": true,
+    "outcome_stated": true
+  }
+}

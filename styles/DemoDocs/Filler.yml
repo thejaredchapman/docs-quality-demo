@@ -1,0 +1,10 @@
+extends: existence
+message: "Avoid '%s'. If the step isn't simple for the reader, this word makes them feel worse."
+level: warning
+ignorecase: true
+tokens:
+  - simply
+  - just
+  - easily
+  - obviously
+  - of course
