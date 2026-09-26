@@ -1,6 +1,7 @@
 site_name: Tally Help
 site_description: Help pages for Tally, a made-up habit tracker, built to demo automated docs quality checks.
 repo_url: https://github.com/thejaredchapman/docs-quality-demo
+edit_uri: edit/main/docs/
 docs_dir: docs
 
 hooks:
