@@ -18,6 +18,21 @@ jobs:
         with:
           files: docs
 
+  structure:
+    name: Style guide sync + page structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Checklist and structure rules match the style guide
+        run: python scripts/build_rules.py --check
+      - name: Every page has the structure its type requires
+        run: python scripts/check_structure.py
+
   claude-review:
     name: Style review (Claude)
     runs-on: ubuntu-latest
