@@ -53,6 +53,19 @@ def label_loop(pairs, labels, show, ask, save, seed=None):
     return labels
 
 
+def read_answer(prompt_fn=input):
+    """Read an answer from the user, catching EOFError (stdin closed).
+
+    Returns the first lowercase character of the response, or "q" if stdin closes.
+    """
+    try:
+        response = prompt_fn("Does the page follow this rule? [y]es / [n]o / [s]kip / [q]uit: ")
+        return response.strip().lower()[:1]
+    except EOFError:
+        print()  # Print newline so summary starts on its own line
+        return "q"
+
+
 def git_user_name():
     result = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True, cwd=REPO_ROOT)
     return result.stdout.strip() or "unknown"
@@ -97,7 +110,7 @@ def main():
         print(f"Rule: {rule_text[rule_id]}")
 
     def ask():
-        return input("Does the page follow this rule? [y]es / [n]o / [s]kip / [q]uit: ").strip().lower()[:1]
+        return read_answer()
 
     label_loop(pairs, labels, show, ask, save)
     done = len(pairs) - len(pending(pairs, labels))

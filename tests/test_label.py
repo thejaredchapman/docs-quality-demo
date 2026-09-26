@@ -1,6 +1,6 @@
 import json
 
-from label import label_loop, pending
+from label import label_loop, pending, read_answer
 
 PAIRS = [("a.md", "x"), ("a.md", "y"), ("b.md", "x")]
 
@@ -57,3 +57,15 @@ def test_order_is_shuffled_but_repeatable():
     _, first, _ = run(["y", "y", "y"], seed=1)
     _, second, _ = run(["y", "y", "y"], seed=1)
     assert first == second
+
+
+def test_read_answer_returns_q_on_eof():
+    def mock_input(prompt):
+        raise EOFError()
+    assert read_answer(prompt_fn=mock_input) == "q"
+
+
+def test_read_answer_extracts_first_lowercase_char():
+    def mock_input(prompt):
+        return "  Yes "
+    assert read_answer(prompt_fn=mock_input) == "y"
