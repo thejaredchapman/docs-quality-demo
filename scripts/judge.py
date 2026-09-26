@@ -4,16 +4,15 @@ Adapted from evalforge-lite's judge.py, but uses the Anthropic SDK directly and
 forced tool use, so the answer always comes back as structured data (no regex parsing).
 """
 import anthropic
-import yaml
 
-from common import REPO_ROOT
+# Re-exported so existing callers can keep doing `from judge import load_checklist`
+from rules import load_checklist  # noqa: F401
 
 DEFAULT_MODEL = "claude-sonnet-5"
-CHECKLIST_PATH = REPO_ROOT / "checklist.yaml"
 
 SYSTEM_PROMPT = """You are a strict technical-writing reviewer.
 Grade the page against each checklist item, and nothing else.
-If an item doesn't apply to the page (for example, a rule about steps on a page with no steps), mark it passed.
+If the page has nothing a rule is about (for example, a rule about prerequisites on a page that needs none), mark it passed.
 Report every checklist item exactly once, using its id."""
 
 # Describes the exact shape of the answer we want back.
@@ -40,12 +39,6 @@ REPORT_TOOL = {
         "required": ["results"],
     },
 }
-
-
-def load_checklist(path=CHECKLIST_PATH):
-    """Return the checklist as a list of {"id": ..., "rule": ...} dicts."""
-    with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f)["items"]
 
 
 def format_checklist(items):
