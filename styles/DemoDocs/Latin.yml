@@ -2,7 +2,8 @@ extends: substitution
 message: "Use '%s' instead of '%s'."
 level: warning
 ignorecase: true
+nonword: true
 swap:
-  'e\.g\.': for example
-  'i\.e\.': that is
-  'etc\.': and so on
+  '\be\.g\.': for example
+  '\bi\.e\.': that is
+  '\betc\.': and so on
