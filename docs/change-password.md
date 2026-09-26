@@ -3,6 +3,8 @@ type: how-to
 ---
 # Change your password
 
+Your Tally password is separate from the password for your email account.
+
 1. Open **Settings**.
 2. Select **Account**.
 3. Select **Change password**.
