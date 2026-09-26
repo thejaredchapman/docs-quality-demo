@@ -1,23 +1,32 @@
-# The style checklist Claude grades each page against.
-# These are judgment calls that a rule-based linter like Vale can't make.
-# Each id must match the keys used in eval/labels.json.
+# Generated from STYLE_GUIDE.md by scripts/build_rules.py. Do not edit by hand.
 items:
-  - id: intro_audience
-    rule: >-
-      The first paragraph says who the page is for or what the reader will
-      accomplish.
-  - id: prereqs_first
-    rule: >-
-      Anything the reader needs before starting (an account, a permission, a
-      setting turned on) is stated before the steps, not during or after them.
-  - id: one_action_per_step
-    rule: >-
-      Each numbered step asks the reader to do exactly one thing.
-  - id: no_undefined_jargon
-    rule: >-
-      Technical terms and acronyms a non-technical user wouldn't know are
-      explained or avoided.
-  - id: outcome_stated
-    rule: >-
-      After the steps, the page tells the reader what happens or how to tell
-      that it worked.
+- id: intro_audience
+  rule: The first paragraph says who the page is for or what the reader will accomplish.
+  types:
+  - tutorial
+  - how-to
+  - reference
+  - troubleshooting
+- id: no_undefined_jargon
+  rule: Technical terms and acronyms a non-technical user wouldn't know are explained or avoided.
+  types:
+  - tutorial
+  - how-to
+  - reference
+  - troubleshooting
+- id: prereqs_first
+  rule: Anything the reader needs before starting (an account, a permission, a setting turned on) is stated before the steps, not during or after them.
+  types:
+  - how-to
+  - tutorial
+- id: one_action_per_step
+  rule: Each numbered step asks the reader to do exactly one thing.
+  types:
+  - how-to
+  - tutorial
+  - troubleshooting
+- id: outcome_stated
+  rule: After the steps, the page tells the reader what happens or how to tell that it worked.
+  types:
+  - how-to
+  - tutorial

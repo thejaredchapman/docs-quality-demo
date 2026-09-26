@@ -1,0 +1,61 @@
+# Generated from STYLE_GUIDE.md by scripts/build_rules.py. Do not edit by hand.
+types:
+- tutorial
+- how-to
+- reference
+- troubleshooting
+- landing
+rules:
+- id: single_h1
+  types:
+  - tutorial
+  - how-to
+  - reference
+  - troubleshooting
+  - landing
+  params: {}
+- id: warnings_only
+  types:
+  - tutorial
+  - how-to
+  - reference
+  - troubleshooting
+  params: {}
+- id: type_declared
+  types:
+  - tutorial
+  - how-to
+  - reference
+  - troubleshooting
+  - landing
+  params: {}
+- id: intro_first
+  types:
+  - tutorial
+  - how-to
+  - reference
+  - troubleshooting
+  params: {}
+- id: numbered_steps
+  types:
+  - tutorial
+  - how-to
+  params: {}
+- id: max_steps
+  types:
+  - how-to
+  params:
+    max_steps: '7'
+- id: required_sections
+  types:
+  - tutorial
+  params:
+    sections: before-you-start,next-steps
+- id: no_numbered_lists
+  types:
+  - reference
+  params: {}
+- id: symptom_headings
+  types:
+  - troubleshooting
+  params: {}

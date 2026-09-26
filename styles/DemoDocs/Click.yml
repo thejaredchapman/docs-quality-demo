@@ -1,0 +1,9 @@
+extends: substitution
+message: "Use '%s' instead of '%s'. It's right on phones and on the web."
+level: warning
+ignorecase: true
+swap:
+  click: select
+  clicks: selects
+  tap: select
+  taps: selects
