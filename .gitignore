@@ -2,6 +2,7 @@ venv/
 __pycache__/
 .pytest_cache/
 .env
+site/
 
 # Vale packages are downloaded by `vale sync`, so only keep our own styles
 styles/*

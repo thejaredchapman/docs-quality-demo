@@ -1,0 +1,12 @@
+/* The "Checked by: ..." label above each rule in the style guide */
+.rule-check {
+  display: block;
+  width: fit-content;
+  margin-bottom: 0.25em;
+  padding: 0.1em 0.6em;
+  border-radius: 4px;
+  background: #eef2f7;
+  color: #34495e;
+  font-size: 0.75em;
+  font-weight: 600;
+}

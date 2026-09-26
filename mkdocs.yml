@@ -1,0 +1,37 @@
+site_name: Tally Help
+site_description: Help pages for Tally, a made-up habit tracker, built to demo automated docs quality checks.
+repo_url: https://github.com/thejaredchapman/docs-quality-demo
+docs_dir: docs
+
+hooks:
+  - scripts/site_hooks.py
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - tables
+
+# Grouped by content type, so the site's structure matches the style guide
+nav:
+  - Home: index.md
+  - Get started:
+      - getting-started.md
+  - How-to guides:
+      - create-a-habit.md
+      - edit-a-habit.md
+      - reminders.md
+      - streak-freeze.md
+      - dark-mode.md
+      - cloud-sync.md
+      - share-progress.md
+      - export-data.md
+      - change-password.md
+      - delete-account.md
+  - Reference:
+      - keyboard-shortcuts.md
+      - faq.md
+  - Troubleshooting:
+      - troubleshooting-sync.md
+  - Style guide: style-guide.md
