@@ -22,6 +22,16 @@ from rules import applicable_pairs, load_checklist, rules_hash
 LABELS_PATH = REPO_ROOT / "eval" / "labels.json"
 ANSWERS = {"y": True, "n": False}
 VALID_ANSWERS = ("y", "n", "s", "q")
+INTRO = """How this works:
+
+- You'll see each page once, then a few rules for it, one at a time.
+  Each question on the same page checks a different rule, so read the
+  "Rule:" line. You're not being asked the same thing twice.
+- Answer about the page as written: y = it follows the rule,
+  n = it breaks the rule. You won't see Claude's answers or your old ones.
+- Your answer saves as soon as you press Enter. Press q (or Ctrl+D) to
+  stop, and run this again later to pick up where you left off.
+"""
 PROMPT = "Does the page follow this rule? [y] yes, it follows it / [n] no, it breaks it / [s] skip / [q] quit: "
 
 
@@ -145,6 +155,7 @@ def main():
             answer = read_answer()
         return answer
 
+    print(INTRO)
     label_loop(pairs, labels, show, ask, save)
     done = len(pairs) - len(pending(pairs, labels))
     where = f" Saved in {LABELS_PATH.relative_to(REPO_ROOT)}." if LABELS_PATH.exists() else " Nothing saved yet."
