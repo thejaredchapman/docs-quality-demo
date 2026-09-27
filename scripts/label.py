@@ -40,6 +40,17 @@ def pending(pairs, labels):
     return [(page, rule_id) for page, rule_id in pairs if rule_id not in labels.get(page, {})]
 
 
+def progress_summary(pairs, labels):
+    """One line saying how many questions there are and how many are left."""
+    pages = len({page for page, _ in pairs})
+    done = len(pairs) - len(pending(pairs, labels))
+    left = len(pairs) - done
+    summary = f"There are {len(pairs)} questions in total, across {pages} pages."
+    if done:
+        summary += f" You've answered {done}, so {left} are left."
+    return summary
+
+
 def order_by_page(todo, seed=None):
     """Group the pairs by page, in a random page order, with each page's rules shuffled.
 
@@ -156,6 +167,7 @@ def main():
         return answer
 
     print(INTRO)
+    print(progress_summary(pairs, labels))
     label_loop(pairs, labels, show, ask, save)
     done = len(pairs) - len(pending(pairs, labels))
     where = f" Saved in {LABELS_PATH.relative_to(REPO_ROOT)}." if LABELS_PATH.exists() else " Nothing saved yet."

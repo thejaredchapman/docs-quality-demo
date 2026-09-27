@@ -1,6 +1,6 @@
 import json
 
-from label import INTRO, label_loop, pending, read_answer, VALID_ANSWERS
+from label import INTRO, label_loop, pending, progress_summary, read_answer, VALID_ANSWERS
 
 PAIRS = [("a.md", "x"), ("a.md", "y"), ("b.md", "x")]
 
@@ -109,3 +109,10 @@ def test_prompt_says_what_yes_means():
 def test_intro_explains_that_questions_do_not_repeat():
     assert "different rule" in INTRO
     assert "y = it follows the rule" in INTRO and "n = it breaks the rule" in INTRO
+
+
+def test_progress_summary_states_the_question_count():
+    assert progress_summary(PAIRS, {}) == "There are 3 questions in total, across 2 pages."
+    assert progress_summary(PAIRS, {"a.md": {"x": True}}) == (
+        "There are 3 questions in total, across 2 pages. You've answered 1, so 2 are left."
+    )
