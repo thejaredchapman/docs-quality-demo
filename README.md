@@ -22,6 +22,36 @@ When someone opens a PR that touches the docs, 6 checks run:
 
 Anything a rule can catch goes to a rule-based check, which is free and instant. Claude only gets the judgment calls, and how often it agrees with a human is **measured** (see [How accurate is the Claude reviewer?](#how-accurate-is-the-claude-reviewer)).
 
+## Who can use this
+
+Tally is fictional, but the setup works for any docs that live in a Git repo as Markdown. Here's where each part earns its keep.
+
+### For businesses
+
+- **Product teams shipping UI changes every week.** Point the UI drift check at your app's string file. When a PR renames "Save changes" to "Save," it fails and lists every help page that still says the old name, before customers see them.
+- **Help centers written by many teams.** Give each kind of article a template and a content type. The structure check keeps a how-to from turning into a 15-step essay, and keeps troubleshooting pages organized by the symptom the customer sees.
+- **Developer and API docs.** Encode your house style (voice, banned words, link text) as Vale rules, so reviewers stop leaving the same 5 comments on every PR.
+- **Internal runbooks and onboarding guides.** The "prerequisites before the steps" and "one action per step" rules are the ones that matter most at 2 a.m. during an incident.
+- **Regulated or audited teams.** Every docs change passes the same documented checks, and the PR history shows it. The style guide says which check enforces each rule, which is easy to hand an auditor.
+- **Docs headed for translation.** Rules against "e.g.," "i.e.," and minimizers like "simply" keep the source English plain, which makes translation cheaper and more accurate.
+- **Teams deciding whether to trust an AI reviewer.** The labeling tools and the accuracy report work for any AI grader. Label a sample by hand, measure agreement and κ against the always-pass baseline, then decide how much to rely on it.
+
+### For individuals
+
+- **Open-source maintainers.** Contributors get consistent feedback on their docs PRs automatically, so your review time goes to the content.
+- **Writers and bloggers.** Turn your own writing habits into Vale rules (the words you overuse, the phrases you've banned) and check every post before you publish.
+- **Indie developers and side projects.** Keep your app's help pages in sync with its UI on your own, with no docs team.
+- **People learning to evaluate AI.** Label 62 small judgments, run the comparison, and read where the model disagreed with you. It's a hands-on way to learn what agreement, baselines, and Cohen's κ actually tell you.
+- **Job seekers and students.** Fork it as a docs-as-code portfolio piece: write your own style guide, and show that the checks enforce it.
+
+### Adapting it to your docs
+
+1. Replace the pages in `docs/` with yours, and give each one a `type:`.
+2. Rewrite `STYLE_GUIDE.md` with your rules, then run `python scripts/build_rules.py`.
+3. Point the drift check at your UI strings: change `STRINGS_PATH` at the top of `scripts/ui_drift.py`. It expects a flat JSON file of `"key": "label"` pairs, like [`app/ui_strings.json`](app/ui_strings.json).
+4. Update the `nav:` in `mkdocs.yml`.
+5. Relabel with `scripts/label.py` or `scripts/review_sheet.py`, then run the comparison, so the accuracy numbers describe your docs and your rules.
+
 ## How to use it
 
 ### Set up locally (once)
