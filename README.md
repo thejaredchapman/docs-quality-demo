@@ -80,6 +80,7 @@ pytest                                   # no API key needed: Claude is faked in
 python scripts/build_rules.py            # after editing STYLE_GUIDE.md
 python scripts/check_structure.py
 python scripts/label.py                  # make the hand labels (about 30 minutes)
+python scripts/review_sheet.py export    # or: label every page in one editable file, then `import`
 mkdocs serve                             # preview the site at http://127.0.0.1:8000
 
 export ANTHROPIC_API_KEY=...
