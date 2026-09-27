@@ -1,4 +1,4 @@
-"""Label docs pages by hand, one rule at a time, without seeing any other answers.
+"""Label docs pages by hand, one page at a time, without seeing any other answers.
 
 Your labels are the answer key the Claude reviewer is measured against, so
 this tool never shows Claude's verdicts or any earlier labels. It saves after
@@ -21,6 +21,8 @@ from rules import applicable_pairs, load_checklist, rules_hash
 
 LABELS_PATH = REPO_ROOT / "eval" / "labels.json"
 ANSWERS = {"y": True, "n": False}
+VALID_ANSWERS = ("y", "n", "s", "q")
+PROMPT = "Does the page follow this rule? [y] yes, it follows it / [n] no, it breaks it / [s] skip / [q] quit: "
 
 
 def pending(pairs, labels):
@@ -28,21 +30,46 @@ def pending(pairs, labels):
     return [(page, rule_id) for page, rule_id in pairs if rule_id not in labels.get(page, {})]
 
 
-def label_loop(pairs, labels, show, ask, save, seed=None):
-    """Ask about every unlabeled pair in a random order, and return the labels.
+def order_by_page(todo, seed=None):
+    """Group the pairs by page, in a random page order, with each page's rules shuffled.
 
-    show(page, rule_id, done, total) displays one question.
+    Each page is shown once, and all its rules are asked in a row, so the
+    labeler reads a page once instead of meeting it again later in the list.
+    """
+    rng = random.Random(seed)
+    rules_by_page = {}
+    for page, rule_id in todo:
+        rules_by_page.setdefault(page, []).append(rule_id)
+    pages = sorted(rules_by_page)
+    rng.shuffle(pages)
+    ordered = []
+    for page in pages:
+        rule_ids = rules_by_page[page]
+        rng.shuffle(rule_ids)
+        ordered += [(page, rule_id) for rule_id in rule_ids]
+    return ordered
+
+
+def label_loop(pairs, labels, show, ask, save, seed=None):
+    """Ask about every unlabeled pair, one page at a time, and return the labels.
+
+    show(page, rule_id, done, total, rule_number, rule_count) displays one question;
+    rule_number counts from 1 within the current page, so show() can print the
+    page text only once.
     ask() returns "y", "n", "s" (skip) or "q" (quit); anything else is asked again.
     save(labels) is called after every answer, so quitting or crashing loses nothing.
     """
-    todo = pending(pairs, labels)
-    # Random order, so pages aren't labeled in a pattern that could bias the answers
-    random.Random(seed).shuffle(todo)
+    todo = order_by_page(pending(pairs, labels), seed)
+    rule_count = {}
+    for page, _ in todo:
+        rule_count[page] = rule_count.get(page, 0) + 1
     total = len(pairs)
+    rule_number = {}
     for page, rule_id in todo:
-        show(page, rule_id, total - len(pending(pairs, labels)), total)
+        rule_number[page] = rule_number.get(page, 0) + 1
+        show(page, rule_id, total - len(pending(pairs, labels)), total, rule_number[page], rule_count[page])
         answer = ask()
-        while answer not in ("y", "n", "s", "q"):
+        while answer not in VALID_ANSWERS:
             answer = ask()
         if answer == "q":
             break
@@ -59,7 +86,7 @@ def read_answer(prompt_fn=input):
     Returns the first lowercase character of the response, or "q" if stdin closes.
     """
     try:
-        response = prompt_fn("Does the page follow this rule? [y]es / [n]o / [s]kip / [q]uit: ")
+        response = prompt_fn(PROMPT)
         return response.strip().lower()[:1]
     except EOFError:
         print()  # Print newline so summary starts on its own line
@@ -101,16 +128,22 @@ def main():
         LABELS_PATH.parent.mkdir(exist_ok=True)
         LABELS_PATH.write_text(json.dumps({"meta": meta, "labels": current}, indent=2) + "\n", encoding="utf-8")
 
-    def show(page, rule_id, done, total):
-        _, body, _ = read_page(DOCS_DIR / page)
-        print("\n" + "=" * 72)
-        print(f"[{done + 1}/{total}]  {page}\n")
-        print(body.strip())
+    def show(page, rule_id, done, total, rule_number, rule_count):
+        if rule_number == 1:
+            _, body, _ = read_page(DOCS_DIR / page)
+            print("\n" + "=" * 72)
+            print(f"{page}\n")
+            print(body.strip())
         print("\n" + "-" * 72)
+        print(f"[{done + 1}/{total}]  {page}: rule {rule_number} of {rule_count} for this page")
         print(f"Rule: {rule_text[rule_id]}")
 
     def ask():
-        return read_answer()
+        answer = read_answer()
+        while answer not in VALID_ANSWERS:
+            print("Type y, n, s, or q, then press Enter.")
+            answer = read_answer()
+        return answer
 
     label_loop(pairs, labels, show, ask, save)
     done = len(pairs) - len(pending(pairs, labels))

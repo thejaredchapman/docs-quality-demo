@@ -1,6 +1,6 @@
 import json
 
-from label import label_loop, pending, read_answer
+from label import label_loop, pending, read_answer, VALID_ANSWERS
 
 PAIRS = [("a.md", "x"), ("a.md", "y"), ("b.md", "x")]
 
@@ -11,7 +11,7 @@ def run(answers, labels=None, seed=0):
     result = label_loop(
         PAIRS,
         {} if labels is None else labels,
-        show=lambda page, rule_id, done, total: shown.append((page, rule_id)),
+        show=lambda page, rule_id, done, total, rule_number, rule_count: shown.append((page, rule_id)),
         ask=lambda: next(answers),
         save=lambda current: saves.append(json.dumps(current, sort_keys=True)),
         seed=seed,
@@ -69,3 +69,38 @@ def test_read_answer_extracts_first_lowercase_char():
     def mock_input(prompt):
         return "  Yes "
     assert read_answer(prompt_fn=mock_input) == "y"
+
+
+def test_each_page_is_shown_once_with_all_its_rules_in_a_row():
+    _, shown, _ = run(["y", "y", "y"], seed=3)
+    pages = [page for page, _ in shown]
+    # No page comes back after another page has been shown
+    assert pages in (["a.md", "a.md", "b.md"], ["b.md", "a.md", "a.md"])
+
+
+def test_show_numbers_the_rules_within_a_page():
+    calls = []
+    label_loop(
+        PAIRS, {},
+        show=lambda page, rule_id, done, total, rule_number, rule_count: calls.append((page, rule_number, rule_count)),
+        ask=lambda: "y", save=lambda current: None, seed=0,
+    )
+    assert [(n, c) for page, n, c in calls if page == "a.md"] == [(1, 2), (2, 2)]
+    assert [(n, c) for page, n, c in calls if page == "b.md"] == [(1, 1)]
+
+
+def test_resume_counts_only_the_rules_left_on_a_page():
+    calls = []
+    label_loop(
+        PAIRS, {"a.md": {"x": True}},
+        show=lambda page, rule_id, done, total, rule_number, rule_count: calls.append((page, rule_id, rule_number, rule_count)),
+        ask=lambda: "y", save=lambda current: None, seed=0,
+    )
+    assert ("a.md", "y", 1, 1) in calls
+
+
+def test_prompt_says_what_yes_means():
+    seen = []
+    read_answer(prompt_fn=lambda prompt: seen.append(prompt) or "y")
+    assert "follows" in seen[0] and "breaks" in seen[0]
+    assert VALID_ANSWERS == ("y", "n", "s", "q")
