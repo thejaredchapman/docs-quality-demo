@@ -1,33 +1,129 @@
 # Docs quality checks: a GitHub Action demo
 
-A small help site for **Tally**, a made-up habit-tracker app, with a style guide and the automated checks that enforce it on every pull request.
+Help docs written by many people drift. The style guide says one thing, the pages do another, and a button gets renamed in the app while five pages still mention the old name. Usually a reader finds it first.
 
-- **Style guide:** [`STYLE_GUIDE.md`](STYLE_GUIDE.md), also published on the [docs site](https://thejaredchapman.github.io/docs-quality-demo/style-guide/)
+This repo is a small, working version of the fix. It's a help site for **Tally**, a made-up habit-tracker app, with a style guide and a set of automated checks that run on every pull request. The style guide is the single source of truth: the checks are generated from it, so the rules people read and the rules CI enforces can't disagree.
+
 - **Docs site:** https://thejaredchapman.github.io/docs-quality-demo/
+- **Style guide:** [`STYLE_GUIDE.md`](STYLE_GUIDE.md), also on the [docs site](https://thejaredchapman.github.io/docs-quality-demo/style-guide/), where each rule shows which check enforces it
 
-The style guide is the single source of truth. The Claude reviewer's checklist and the structure rules are generated from it, and CI fails if they drift apart.
+## What happens on a pull request
 
-## Who checks what
+When someone opens a PR that touches the docs, 6 checks run:
 
-| Kind of rule | Example | Checked by | Blocks the PR? |
+| Check | What it catches | How | Blocks the PR? |
 |---|---|---|---|
-| Guide sync | the checklist was edited by hand | `build_rules.py --check` | **Yes** |
-| Structure | page declares a type, how-to has 7 steps or fewer, tutorial has "Next steps" | `check_structure.py`, rule-based | **Yes** |
-| Word-level | "simply," "click," "e.g.," "click here" links | [Vale](https://vale.sh), rule-based | No (annotations) |
-| Judgment | the intro says who the page is for, one action per step | Claude, graded against the rules for the page's type | No (advisory) |
-| Product sync | docs still mention a button the code just renamed | `ui_drift.py`, diff of [`app/ui_strings.json`](app/ui_strings.json) | **Yes** |
+| Guide sync | Someone edited the generated rule files by hand, or changed the guide without regenerating them | `build_rules.py --check` | **Yes** |
+| Page structure | A page with no content type, a how-to with more than 7 steps, a tutorial with no "Next steps" section | `check_structure.py`, rule-based | **Yes** |
+| Unit tests | A change that breaks the checking scripts themselves | `pytest` on Python 3.9 | **Yes** |
+| Wording | "simply," "click," "e.g.," link text that says "here" | [Vale](https://vale.sh), rule-based | No, it comments on the lines |
+| Judgment | An intro that doesn't say who the page is for, a step that asks for two actions | Claude, graded only against the rules for that page's type | No, it's advice |
+| UI drift | Docs that still mention a button or setting the app just renamed | `ui_drift.py`, diff of [`app/ui_strings.json`](app/ui_strings.json) | **Yes** |
 
-Rules handle everything rules can do. Claude only handles the judgment calls, and its accuracy is **measured**, not assumed.
+Anything a rule can catch goes to a rule-based check, which is free and instant. Claude only gets the judgment calls, and how often it agrees with a human is **measured** (see [How accurate is the Claude reviewer?](#how-accurate-is-the-claude-reviewer)).
+
+## How to use it
+
+### Set up locally (once)
+
+```bash
+git clone https://github.com/thejaredchapman/docs-quality-demo.git
+cd docs-quality-demo
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+pytest                      # no API key needed: Claude is faked in the tests
+```
+
+Optional: install Vale with `brew install vale`, then run `vale sync` once.
+
+### Write or edit a page
+
+1. Start from the template for the kind of page you're writing, in [`templates/`](templates/). Not sure which? See [Content types](#content-types).
+2. Keep the `type:` line at the top. It decides which rules apply.
+3. Check your page before you open a PR:
+
+   ```bash
+   python scripts/check_structure.py docs/your-page.md   # structure: must pass
+   vale docs/your-page.md                                # wording: fix what it flags
+   mkdocs serve                                          # preview at http://127.0.0.1:8000
+   ```
+
+4. If you add a new page, add it to the `nav:` in `mkdocs.yml`, under the group for its type.
+
+### Change a style rule
+
+1. Edit [`STYLE_GUIDE.md`](STYLE_GUIDE.md). Each rule has a tag on the line above it, like `<!-- rule id=max_steps check=structure types=how-to max_steps=7 -->`, which says which check enforces it and which page types it applies to.
+2. Regenerate the rule files, and commit them with the guide:
+
+   ```bash
+   python scripts/build_rules.py    # rewrites checklist.yaml and content_types.yaml
+   ```
+
+If you skip step 2, the guide-sync check fails the PR and tells you to run it.
+
+### Measure the Claude reviewer
+
+This is how you find out whether Claude's style advice can be trusted. You label the pages yourself, then compare Claude's answers with yours. Neither labeling tool ever shows you Claude's answers.
+
+**1. Label the pages.** There are 62 questions: each page, against each Claude rule that applies to its type. Pick one way:
+
+- **One question at a time, in the terminal:**
+
+  ```bash
+  python scripts/label.py
+  ```
+
+  Each page is shown once, then its rules one at a time. Press `y` if the page follows the rule, or `n` if it breaks it. Your answers save as you go. Press `q` to stop and run it again later to continue.
+
+- **Every page in one file:**
+
+  ```bash
+  python scripts/review_sheet.py export    # writes eval/review-sheet.md
+  ```
+
+  Open `eval/review-sheet.md`. Every rule starts checked ("the page follows it"). Read each page and uncheck any rule it breaks, then save and run:
+
+  ```bash
+  python scripts/review_sheet.py import    # writes eval/labels.json
+  ```
+
+  The import records that the labels came from the review sheet, so anyone reading the numbers knows how they were made.
+
+**2. Run the comparison** (needs an API key; a full run is 14 short API calls per model):
+
+```bash
+export ANTHROPIC_API_KEY=...
+python scripts/eval_judge.py --model claude-haiku-4-5-20251001 --model claude-sonnet-5
+```
+
+The report shows agreement, the always-pass baseline, Cohen's κ, and every question where Claude and you disagreed, with Claude's reasoning. If you change the rules after labeling, the comparison refuses to run until you relabel, because the old answers no longer match the questions.
+
+### Run it on your own copy of the repo
+
+1. Fork or push the repo to GitHub.
+2. Add a repository secret named `ANTHROPIC_API_KEY`: **Settings → Secrets and variables → Actions**.
+3. Turn on the site: **Settings → Pages → Source: GitHub Actions**. It redeploys on every push to `main`.
+4. Open PRs from branches in the same repo. PRs from forks don't get secrets, so the Claude review can't run on them.
 
 ## Content types
 
-Every page declares `type:` in its frontmatter: `tutorial`, `how-to`, `reference`, `troubleshooting`, or `landing` (the home page only). The type decides which structure rules and which Claude rules apply. Templates for each type are in [`templates/`](templates/).
+Every page declares one type at the top:
+
+| Type | Use it when the reader wants to... | Example |
+|---|---|---|
+| `tutorial` | learn by doing one thing from start to finish | [Get started with Tally](docs/getting-started.md) |
+| `how-to` | finish one specific task | [Turn on dark mode](docs/dark-mode.md) |
+| `reference` | look something up | [Keyboard shortcuts](docs/keyboard-shortcuts.md) |
+| `troubleshooting` | fix something that went wrong | [Sync problems](docs/troubleshooting-sync.md) |
+| `landing` | find their way around (the home page only) | [Home](docs/index.md) |
+
+The type decides which structure rules and which Claude rules apply. For example, only how-tos have the 7-step limit, and reference pages can't have numbered steps.
 
 ## How accurate is the Claude reviewer?
 
 **Status: labeling in progress.** The table below fills in once the hand labels are done.
 
-The answer key is `eval/labels.json`: for each page, and each Claude rule that applies to its type, does the page follow the rule? That's 62 judgments on 14 pages. The labels are made blind with [`scripts/label.py`](scripts/label.py), which never shows Claude's answers.
+The answer key is `eval/labels.json`: for each page, and each Claude rule that applies to its type, does the page follow the rule? That's 62 judgments on 14 pages.
 
 Some pages break the style guide on purpose, so every check has something real to catch. They aren't listed here, so the hand labels stay blind.
 
@@ -36,7 +132,23 @@ Some pages break the style guide on purpose, so every check has something real t
 | `claude-haiku-4-5-20251001` | __% | __% | __ | __ | __ |
 | `claude-sonnet-5` | __% | __% | __ | __ | __ |
 
-Most pages follow most rules, so a "reviewer" that always says pass would already match the **always-pass baseline**. Cohen's κ measures agreement beyond that: 0 means no better than chance, and 1 means perfect. "Unknown" answers count as wrong, so neither number is inflated. n = 62 is small, so treat the numbers as directional.
+How to read it:
+
+- **Agreement:** how often Claude's answer matched the hand label.
+- **Always-pass baseline:** most pages follow most rules, so a "reviewer" that always says pass would already score this. Claude's agreement only means something above it.
+- **Cohen's κ:** agreement beyond chance. 0 means no better than guessing, and 1 means perfect.
+- **Misses:** the page broke the rule and Claude said it passed. **False alarms:** the opposite.
+
+When Claude gives no answer, it counts as wrong, so none of these numbers are inflated. n = 62 is small, so treat them as directional.
+
+## Demo PRs
+
+Four PRs that show each check doing its job:
+
+1. **Style problems.** Edit `docs/streak-freeze.md` and `docs/edit-a-habit.md`. Vale flags "just," and Claude flags the missing outcome, the multi-action step, and the intro that doesn't say who the page is for.
+2. **UI rename.** In `app/ui_strings.json`, change `"Save changes"` → `"Save"` and `"Cloud sync"` → `"Sync"`. The drift check fails and lists the 11 lines that need updating.
+3. **Clean PR.** A small fix to `docs/delete-account.md`. Everything passes.
+4. **Structure problems.** Add `docs/pause-a-habit.md` with `type: how-to`, 8 numbered steps, and a `> **Note:**` callout. The structure check fails with two annotations: `max_steps` on step 8 and `warnings_only` on the note.
 
 ## Repo layout
 
@@ -47,55 +159,22 @@ docs/                             # 15 sample pages, some with planted problems
 checklist.yaml                    # generated: rules Claude grades
 content_types.yaml                # generated: structure rules per type
 app/ui_strings.json               # stand-in for product code: UI labels
-eval/labels.json                  # hand labels (made with scripts/label.py)
+eval/labels.json                  # hand labels (the answer key)
 styles/DemoDocs/                  # custom Vale rules
 mkdocs.yml                        # site config; nav grouped by content type
 scripts/build_rules.py            # STYLE_GUIDE.md -> generated rule files (--check in CI)
 scripts/check_structure.py        # rule-based structure checks
 scripts/judge.py                  # Claude grader (Anthropic SDK, forced tool use for structured output)
 scripts/review_pages.py           # grades the pages changed in a PR
-scripts/label.py                  # blind labeling CLI
-scripts/eval_judge.py             # compares the grader to the labels: agreement, baseline, kappa
+scripts/label.py                  # labeling, one question at a time
+scripts/review_sheet.py           # labeling, every page in one editable file
+scripts/eval_judge.py             # compares Claude with the labels: agreement, baseline, kappa
 scripts/ui_drift.py               # flags docs that mention changed UI text
 scripts/site_hooks.py             # publishes the style guide on the site
-.github/workflows/docs-pr.yml     # every PR: sync, structure, Vale, Claude review, drift
-.github/workflows/judge-eval.yml  # run by hand: measures judge accuracy
+.github/workflows/docs-pr.yml     # every PR: sync, structure, tests, Vale, Claude review, drift
+.github/workflows/judge-eval.yml  # run by hand: measures Claude's accuracy
 .github/workflows/deploy-site.yml # every push to main: builds and deploys the site
 ```
-
-## Setup
-
-1. Push this repo to GitHub.
-2. Add a repository secret named `ANTHROPIC_API_KEY` (**Settings → Secrets and variables → Actions**).
-3. Turn on the site: **Settings → Pages → Source: GitHub Actions**.
-4. Open a PR from a branch in this repo. PRs from forks don't get secrets, so the Claude review would fail there.
-
-## Run locally
-
-```bash
-python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-pytest                                   # no API key needed: Claude is faked in tests
-
-python scripts/build_rules.py            # after editing STYLE_GUIDE.md
-python scripts/check_structure.py
-python scripts/label.py                  # make the hand labels (about 30 minutes)
-python scripts/review_sheet.py export    # or: label every page in one editable file, then `import`
-mkdocs serve                             # preview the site at http://127.0.0.1:8000
-
-export ANTHROPIC_API_KEY=...
-python scripts/review_pages.py docs/dark-mode.md
-python scripts/eval_judge.py --model claude-haiku-4-5-20251001 --model claude-sonnet-5
-python scripts/ui_drift.py --base-ref main
-vale docs                                # needs Vale installed: brew install vale && vale sync
-```
-
-## Demo PRs
-
-1. **Style problems.** Edit `docs/streak-freeze.md` and `docs/edit-a-habit.md`. Vale flags "just," and Claude flags the missing outcome, the multi-action step, and the intro that doesn't say who the page is for.
-2. **UI rename.** In `app/ui_strings.json`, change `"Save changes"` → `"Save"` and `"Cloud sync"` → `"Sync"`. The drift check fails and lists the 11 lines that need updating.
-3. **Clean PR.** A small fix to `docs/delete-account.md`. Everything passes.
-4. **Structure problems.** Add `docs/pause-a-habit.md` with `type: how-to`, 8 numbered steps, and a `> **Note:**` callout. The structure check fails with two annotations: `max_steps` on step 8 and `warnings_only` on the note.
 
 ## Limitations and next steps
 
