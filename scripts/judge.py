@@ -66,7 +66,7 @@ def judge_page(page_text, checklist_items, model=DEFAULT_MODEL, client=None):
         response = client.messages.create(
             model=model,
             max_tokens=1024,
-            temperature=0,  # makes answers more consistent from run to run
+            # No `temperature` here: newer models like claude-sonnet-5 reject it with a 400 error
             system=SYSTEM_PROMPT,
             tools=[REPORT_TOOL],
             # Force Claude to answer through the tool instead of plain text

@@ -39,7 +39,8 @@ def test_forces_the_report_tool():
     client = FakeClient(tool_input={"results": []})
     judge_page("# Page", CHECKLIST, client=client)
     assert client.last_request["tool_choice"] == {"type": "tool", "name": "report_checklist"}
-    assert client.last_request["temperature"] == 0
+    # claude-sonnet-5 returns a 400 error if temperature is sent
+    assert "temperature" not in client.last_request
 
 
 def test_skipped_and_unexpected_items():
